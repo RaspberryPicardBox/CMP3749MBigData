@@ -6,6 +6,7 @@ def openSparkDirectory():
 
 
 import findspark
+
 findspark.init(openSparkDirectory())
 import pyspark
 from pyspark.sql import SparkSession
@@ -23,16 +24,28 @@ def repairData(df):
 
 
 def summary(df):
-    minimum = df.groupBy().min()
-    maximum = df.groupBy().max()
-    average_mean = df.groupBy().mean()
-    minimum.join(maximum).join(average_mean).show(vertical=True)
+    df = df.drop('Status')
+
+    for header in df.columns:
+        col = df.select(df[header])
+
+        minimum = col.agg({header: "max"})
+        maximum = col.agg({header: "min"})
+        mean = col.agg({header: "mean"})
+        median = col.agg(pf.expr('percentile_approx({0}, 0.5)'.format(header)).alias("median"))
+        mode = df.groupBy(header).count().orderBy("count", ascending=False)
+        mode = mode.select(mode["count"].alias("mode"))
+        deviation = col.agg({header: "stddev"})
+
+        print("-------------------- {0} --------------------".format(header))
+
+        minimum.join(maximum).join(mean).join(median).join(deviation).join(mode).show(1)
 
 
 if __name__ == '__main__':
     spark = SparkSession.builder.getOrCreate()
 
     df = spark.read.csv("nuclear_plants_small_dataset.csv", inferSchema=True, header=True)
-    #df = repairData(df)
+    # df = repairData(df)
 
-    summary(df.where(df["Status"]=="Normal"))
+    summary(df.where(df["Status"] == "Normal"))
