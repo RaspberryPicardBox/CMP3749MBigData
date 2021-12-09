@@ -9,6 +9,7 @@ import findspark
 findspark.init(openSparkDirectory())
 import pyspark
 from pyspark.sql import SparkSession
+import pyspark.sql.functions as pf
 import matplotlib as plt
 import numpy as np
 
@@ -21,10 +22,17 @@ def repairData(df):
     return df
 
 
+def summary(df):
+    minimum = df.groupBy().min()
+    maximum = df.groupBy().max()
+    average_mean = df.groupBy().mean()
+    minimum.join(maximum).join(average_mean).show(vertical=True)
+
+
 if __name__ == '__main__':
     spark = SparkSession.builder.getOrCreate()
 
     df = spark.read.csv("nuclear_plants_small_dataset.csv", inferSchema=True, header=True)
-    df = repairData(df)
+    #df = repairData(df)
 
-
+    summary(df.where(df["Status"]=="Normal"))
