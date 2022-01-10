@@ -1,4 +1,4 @@
-def openSparkDirectory():
+def openSparkDirectory():  # Finding PySpark on local machine
     direc = open("directories.txt", "r")
     ret = direc.read()
     direc.close()
@@ -6,16 +6,17 @@ def openSparkDirectory():
 
 
 import findspark
-
 findspark.init(openSparkDirectory())
+
 import pyspark
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as pf
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sn
 
 
-def repairData(df):
+def repairData(df):  # Repair the data by removing duplicates and Null values
     print("Cleaning df of count: {0}".format(df.count()))
     df = df.dropDuplicates()
     df = df.dropna()
@@ -23,8 +24,8 @@ def repairData(df):
     return df
 
 
-def summary(df):
-    df = df.drop('Status')
+def summary(df):  # Summary of the data
+    df = df.drop("Status")
 
     for header in df.columns:
         col = df.select(df[header])
@@ -39,13 +40,29 @@ def summary(df):
 
         print("-------------------- {0} --------------------".format(header))
 
-        minimum.join(maximum).join(mean).join(median).join(deviation).join(mode).show(1)
+        minimum.join(maximum).join(mean).join(median).join(deviation).join(mode).show(1)  # Only show top 1 result
+
+        df2 = col.toPandas()  # Make a temporary copy of the column in toPandas format
+        df2.boxplot()  # Make a boxplot
+
+        fig = plt.gcf()
+        fig.canvas.manager.set_window_title(col)  # Rename the window title
+        plt.show()
+
+        # TODO: Show box plot for each group
 
 
 if __name__ == '__main__':
     spark = SparkSession.builder.getOrCreate()
 
-    df = spark.read.csv("nuclear_plants_small_dataset.csv", inferSchema=True, header=True)
-    # df = repairData(df)
+    df = spark.read.csv("nuclear_plants_small_dataset.csv", inferSchema=True, header=True)  # Load data from csv file
+    #df = repairData(df)  # Repair the data
 
-    summary(df.where(df["Status"] == "Normal"))
+    print("Summary where Status is Normal")
+    summary(df.where(df["Status"] == "Normal"))  # Summarise the data where Status is Normal
+
+    print("Summary where Status is Abnormal")
+    summary(df.where(df["Status"] == "Abnormal"))  # Summarise the data where Status is Abnormal
+
+    # TODO: Show correlation matrix for each feature
+    # TODO: Decision tree
