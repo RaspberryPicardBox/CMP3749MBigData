@@ -49,8 +49,6 @@ def summary(df):  # Summary of the data
         fig.canvas.manager.set_window_title(col)  # Rename the window title
         plt.show()
 
-        # TODO: Show box plot for each group
-
 
 if __name__ == '__main__':
     spark = SparkSession.builder.getOrCreate()
