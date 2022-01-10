@@ -11,8 +11,6 @@ findspark.init(openSparkDirectory())
 import pyspark
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as pf
-from pyspark.ml.stat import Correlation
-from pyspark.ml.feature import VectorAssembler
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
