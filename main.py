@@ -12,13 +12,15 @@ import pyspark
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as pf
 import matplotlib.pyplot as plt
-import numpy as np
 import seaborn as sns
+import numpy as np
 import sklearn
 import sklearn.model_selection
+from sklearn import tree
+from sklearn.tree import DecisionTreeClassifier, plot_tree
 
 
-def repairData(df):  # Repair the data by removing duplicates and Null values
+def repairData(df):  # Repair and return the data by removing duplicates and Null values
     print("Cleaning df of count: {0}".format(df.count()))
     df = df.dropDuplicates()
     df = df.dropna()
@@ -26,7 +28,7 @@ def repairData(df):  # Repair the data by removing duplicates and Null values
     return df
 
 
-def summary(df):  # Summary of the data
+def summary(df):  # Show summary of the data
     df = df.drop("Status")
 
     for header in df.columns:
@@ -52,7 +54,7 @@ def summary(df):  # Summary of the data
         plt.show()
 
 
-def correlation(df): # Return correlation matrix of df
+def correlation(df): # Show correlation matrix of df
     df = df.drop("Status")
     df = df.toPandas()
     sns.heatmap(df.corr(), vmin=-1, vmax=1, annot=True)
@@ -60,17 +62,27 @@ def correlation(df): # Return correlation matrix of df
 
 
 def split(df):  # Return split data for train and test
-    df = np.array(df.collect())
-    shuffle = sklearn.model_selection.ShuffleSplit(test_size=0.3, train_size=0.70, n_splits=1).split(df)
-
-    train = None
-    test = None
-
-    for tr, te in shuffle:
-        train = tr
-        test = te
+    train, test = df.randomSplit([0.7, 0.3])
 
     return train, test
+
+
+def decTree(train, test):  # Show decision tree
+    plt.figure()
+    X = train.drop("Status").toPandas()
+    Y = train.select("Status").toPandas()
+    decision_tree = DecisionTreeClassifier()
+    decision_tree = decision_tree.fit(X, Y)
+    tree.plot_tree(decision_tree)
+    plt.savefig("Train.png")
+    plt.show()
+    plt.close()
+    plt.figure()
+    decision_tree.predict(test.drop("Status").toPandas())
+    tree.plot_tree(decision_tree)
+    plt.savefig("Test.png")
+    plt.show()
+    plt.close()
 
 
 if __name__ == '__main__':
@@ -78,19 +90,21 @@ if __name__ == '__main__':
 
     df = spark.read.csv("nuclear_plants_small_dataset.csv", inferSchema=True, header=True)  # Load data from csv file
     df = repairData(df)  # Repair the data
-
+    """
     print("-------Summary where Status is Normal-------\n")
-    #summary(df.where(df["Status"] == "Normal"))  # Summarise the data where Status is Normal
+    summary(df.where(df["Status"] == "Normal"))  # Summarise the data where Status is Normal
 
     print("-------Summary where Status is Abnormal-------\n")
-    #summary(df.where(df["Status"] == "Abnormal"))  # Summarise the data where Status is Abnormal
+    summary(df.where(df["Status"] == "Abnormal"))  # Summarise the data where Status is Abnormal
 
     print("-------Correlation matrix of DF-------\n")
-    #correlation(df)  # Shows correlation matrix of df
-
+    correlation(df)  # Shows correlation matrix of df
+    """
     print("-------Shuffling and splitting data...-------\n")
     train, test = split(df)
-    print("-------Train Set-------\nLength: {}\n".format(len(train)))
-    print(train)
-    print("-------Test Set-------\nLength: {}\n".format(len(test)))
-    print(test)
+    print("-------Train Set-------\nLength: {}\n".format(train.count()))
+    train.show()
+    print("-------Test Set-------\nLength: {}\n".format(test.count()))
+    test.show()
+
+    decTree(train, test)
