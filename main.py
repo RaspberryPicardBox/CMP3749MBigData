@@ -14,6 +14,8 @@ import pyspark.sql.functions as pf
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+import sklearn
+import sklearn.model_selection
 
 
 def repairData(df):  # Repair the data by removing duplicates and Null values
@@ -57,19 +59,38 @@ def correlation(df): # Return correlation matrix of df
     plt.show()
 
 
+def split(df):  # Return split data for train and test
+    df = np.array(df.collect())
+    shuffle = sklearn.model_selection.ShuffleSplit(test_size=0.3, train_size=0.70, n_splits=1).split(df)
+
+    train = None
+    test = None
+
+    for tr, te in shuffle:
+        train = tr
+        test = te
+
+    return train, test
+
+
 if __name__ == '__main__':
     spark = SparkSession.builder.getOrCreate()
 
     df = spark.read.csv("nuclear_plants_small_dataset.csv", inferSchema=True, header=True)  # Load data from csv file
     df = repairData(df)  # Repair the data
 
-    print("Summary where Status is Normal")
-    summary(df.where(df["Status"] == "Normal"))  # Summarise the data where Status is Normal
+    print("-------Summary where Status is Normal-------\n")
+    #summary(df.where(df["Status"] == "Normal"))  # Summarise the data where Status is Normal
 
-    print("Summary where Status is Abnormal")
-    summary(df.where(df["Status"] == "Abnormal"))  # Summarise the data where Status is Abnormal
+    print("-------Summary where Status is Abnormal-------\n")
+    #summary(df.where(df["Status"] == "Abnormal"))  # Summarise the data where Status is Abnormal
 
-    print("Correlation matrix of DF")
-    correlation(df)  # Shows correlation matrix of df
+    print("-------Correlation matrix of DF-------\n")
+    #correlation(df)  # Shows correlation matrix of df
 
-    # TODO: Decision tree
+    print("-------Shuffling and splitting data...-------\n")
+    train, test = split(df)
+    print("-------Train Set-------\nLength: {}\n".format(len(train)))
+    print(train)
+    print("-------Test Set-------\nLength: {}\n".format(len(test)))
+    print(test)
