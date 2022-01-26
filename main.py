@@ -14,9 +14,10 @@ from pyspark.sql import SparkSession
 import pyspark.sql.functions as pf
 from pyspark.sql.functions import lit, when, regexp_replace
 from pyspark.ml import Pipeline
-from pyspark.ml.classification import DecisionTreeClassifier, LinearSVC
+from pyspark.ml.classification import DecisionTreeClassifier, LinearSVC, MultilayerPerceptronClassifier
 from pyspark.ml.feature import StringIndexer, VectorIndexer, VectorAssembler
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
+from pyspark.ml.stat import Correlation
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -55,11 +56,14 @@ def summary(df):  # Show summary of the data
         plt.show()
 
 
-def correlation(df):  # Show correlation matrix of df
+def correlation(df, convertedDf):  # Show correlation matrix of df
     df = df.drop("Status")
     df = df.toPandas()
     sns.heatmap(df.corr(), vmin=-1, vmax=1, annot=True)
-    plt.show()
+    # plt.show()
+
+    r1 = Correlation.corr(convertedDf, "features").head()
+    print("Pearson correlation matrix:\n{}".format(str(r1[0])))
 
 
 def split(df):  # Return split data for train and test
@@ -74,7 +78,7 @@ def split(df):  # Return split data for train and test
 
     (train, test) = df.randomSplit([0.7, 0.3])
 
-    return train, test
+    return train, test, df
 
 
 def decTree(train, test):  # Show decision tree
@@ -103,27 +107,44 @@ def linearSupportVector(train, test):
     print("Accuracy = {}".format(accuracy))
 
 
+def perceptronClassifier(train, test):
+    layers = [12, 10, 5, 2]
+
+    percepClassifier = MultilayerPerceptronClassifier(labelCol="labelIndex", featuresCol='features', maxIter=100, layers=layers, blockSize=128, seed=1234)
+    model = percepClassifier.fit(train)
+    predictions = model.transform(test)
+    predictions.show()
+
+    evaluator = MulticlassClassificationEvaluator(labelCol="labelIndex", predictionCol="prediction",
+                                                  metricName="accuracy")
+    accuracy = evaluator.evaluate(predictions)
+
+    print("Test error = {}".format(1.0 - accuracy))
+    print("Accuracy = {}".format(accuracy))
+
+
 if __name__ == '__main__':
     spark = SparkSession.builder.getOrCreate()
 
     df = spark.read.csv("nuclear_plants_small_dataset.csv", inferSchema=True, header=True)  # Load data from csv file
     df = repairData(df)  # Repair the data
 
-    """print("-------Summary where Status is Normal-------\n")
+    print("-------Summary where Status is Normal-------\n")
     summary(df.where(df["Status"] == "Normal"))  # Summarise the data where Status is Normal
 
     print("-------Summary where Status is Abnormal-------\n")
     summary(df.where(df["Status"] == "Abnormal"))  # Summarise the data where Status is Abnormal
 
-    print("-------Correlation matrix of DF-------\n")
-    correlation(df)  # Shows correlation matrix of df"""
-
     print("-------Shuffling and splitting data...-------\n")
-    train, test = split(df)
-    """print("-------Train Set-------\nLength: {}\n".format(train.count()))
+    train, test, convertedDf = split(df)
+    print("-------Train Set-------\nLength: {}\n".format(train.count()))
     train.show()
     print("-------Test Set-------\nLength: {}\n".format(test.count()))
-    test.show()"""
+    test.show()
 
-    # decTree(train, test)
+    print("-------Correlation matrix of DF-------\n")
+    correlation(df, convertedDf)  # Shows correlation matrix of df
+
+    decTree(train, test)
     linearSupportVector(train, test)
+    perceptronClassifier(train, test)
