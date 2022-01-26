@@ -12,14 +12,13 @@ findspark.init(openSparkDirectory())
 import pyspark
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as pf
-from pyspark.sql.functions import lit, when, regexp_replace
-from pyspark.ml import Pipeline
 from pyspark.ml.classification import DecisionTreeClassifier, LinearSVC, MultilayerPerceptronClassifier
-from pyspark.ml.feature import StringIndexer, VectorIndexer, VectorAssembler
+from pyspark.ml.feature import StringIndexer, VectorAssembler
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
 from pyspark.ml.stat import Correlation
 import matplotlib.pyplot as plt
 import seaborn as sns
+from functools import reduce
 
 
 def repairData(df):  # Repair and return the data by removing duplicates and Null values
@@ -60,7 +59,7 @@ def correlation(df, convertedDf):  # Show correlation matrix of df
     df = df.drop("Status")
     df = df.toPandas()
     sns.heatmap(df.corr(), vmin=-1, vmax=1, annot=True)
-    # plt.show()
+    plt.show()
 
     r1 = Correlation.corr(convertedDf, "features").head()
     print("Pearson correlation matrix:\n{}".format(str(r1[0])))
@@ -123,28 +122,44 @@ def perceptronClassifier(train, test):
     print("Accuracy = {}".format(accuracy))
 
 
+def mapReduce(df):
+    df = df.drop('Status')
+    for header in df.columns:
+        col = df.select(df[header])
+        rdd = spark.sparkContext.parallelize(col.collect())
+        rdd_reduce_max = rdd.reduce(lambda x, y: max(x, y))[0]
+        rdd_reduce_min = rdd.reduce(lambda x, y: min(x, y))[0]
+        rdd_reduce_mean = rdd.reduce(lambda x, y: x + y)[0]
+        print("\n-------Summary of {}-------".format(header))
+        print("Maximum of {}: {}".format(header, rdd_reduce_max))
+        print("Minimum of {}: {}".format(header, rdd_reduce_min))
+        print("Mean of {}: {}".format(header, rdd_reduce_mean))
+
+
 if __name__ == '__main__':
     spark = SparkSession.builder.getOrCreate()
 
     df = spark.read.csv("nuclear_plants_small_dataset.csv", inferSchema=True, header=True)  # Load data from csv file
-    df = repairData(df)  # Repair the data
+    # df = repairData(df)  # Repair the data
 
-    print("-------Summary where Status is Normal-------\n")
+    """print("-------Summary where Status is Normal-------\n")
     summary(df.where(df["Status"] == "Normal"))  # Summarise the data where Status is Normal
 
     print("-------Summary where Status is Abnormal-------\n")
-    summary(df.where(df["Status"] == "Abnormal"))  # Summarise the data where Status is Abnormal
+    summary(df.where(df["Status"] == "Abnormal"))  # Summarise the data where Status is Abnormal"""
 
     print("-------Shuffling and splitting data...-------\n")
     train, test, convertedDf = split(df)
-    print("-------Train Set-------\nLength: {}\n".format(train.count()))
+    """print("-------Train Set-------\nLength: {}\n".format(train.count()))
     train.show()
     print("-------Test Set-------\nLength: {}\n".format(test.count()))
     test.show()
 
     print("-------Correlation matrix of DF-------\n")
-    correlation(df, convertedDf)  # Shows correlation matrix of df
+    correlation(df, convertedDf)  # Shows correlation matrix of df"""
 
-    decTree(train, test)
+    """decTree(train, test)
     linearSupportVector(train, test)
-    perceptronClassifier(train, test)
+    perceptronClassifier(train, test)"""
+
+    mapReduce(df)
