@@ -115,7 +115,7 @@ def linearSupportVector(train, test):
 def perceptronClassifier(train, test):
     layers = [12, 10, 5, 2]
 
-    percepClassifier = MultilayerPerceptronClassifier(labelCol="labelIndex", featuresCol='features', maxIter=100, layers=layers, blockSize=128, seed=1234)
+    percepClassifier = MultilayerPerceptronClassifier(labelCol="labelIndex", featuresCol='features', maxIter=100, layers=layers, blockSize=128)
     model = percepClassifier.fit(train)
     predictions = model.transform(test)
     predictions.show()
@@ -156,15 +156,15 @@ if __name__ == '__main__':
 
     print("-------Shuffling and splitting data...-------\n")
     train, test, convertedDf = split(df)
-    print("-------Train Set-------\nLength: {}\n".format(train.count()))
+    """print("-------Train Set-------\nLength: {}\n".format(train.count()))
     train.show()
     print("-------Test Set-------\nLength: {}\n".format(test.count()))
-    test.show()
+    test.show()"""
 
     """print("-------Correlation matrix of DF-------\n")
     correlation(df, convertedDf)  # Shows correlation matrix of df"""
 
-    # decTree(train, test)
+    decTree(train, test)
     # linearSupportVector(train, test)
     # perceptronClassifier(train, test)
 
