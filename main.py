@@ -1,9 +1,9 @@
-def openSparkDirectory():  # Finding PySpark on local machine
+"""def openSparkDirectory():  # Finding PySpark on local machine
     direc = open("directories.txt", "r")
     ret = direc.read()
     direc.close()
     return ret
-
+"""
 
 import findspark
 
@@ -18,7 +18,6 @@ from pyspark.ml.evaluation import MulticlassClassificationEvaluator
 from pyspark.ml.stat import Correlation
 import matplotlib.pyplot as plt
 import seaborn as sns
-from functools import reduce
 
 
 def repairData(df):  # Repair and return the data by removing duplicates and Null values
@@ -160,27 +159,27 @@ def mapReduce(df):
 if __name__ == '__main__':
     spark = SparkSession.builder.getOrCreate()
 
-    df = spark.read.csv("nuclear_plants_small_dataset.csv", inferSchema=True, header=True)  # Load data from csv file
-    # df = repairData(df)  # Repair the data
+    df = spark.read.csv("nuclear_plants_big_dataset.csv", inferSchema=True, header=True)  # Load data from csv file
+    df = repairData(df)  # Repair the data
 
-    """print("-------Summary where Status is Normal-------\n")
+    print("-------Summary where Status is Normal-------\n")
     summary(df.where(df["Status"] == "Normal"))  # Summarise the data where Status is Normal
 
     print("-------Summary where Status is Abnormal-------\n")
-    summary(df.where(df["Status"] == "Abnormal"))  # Summarise the data where Status is Abnormal"""
+    summary(df.where(df["Status"] == "Abnormal"))  # Summarise the data where Status is Abnormal
 
     print("-------Shuffling and splitting data...-------\n")
     train, test, convertedDf = split(df)
-    """print("-------Train Set-------\nLength: {}\n".format(train.count()))
+    print("-------Train Set-------\nLength: {}\n".format(train.count()))
     train.show()
     print("-------Test Set-------\nLength: {}\n".format(test.count()))
-    test.show()"""
+    test.show()
 
-    """print("-------Correlation matrix of DF-------\n")
-    correlation(df, convertedDf)  # Shows correlation matrix of df"""
+    print("-------Correlation matrix of DF-------\n")
+    correlation(df, convertedDf)  # Shows correlation matrix of df
 
     decTree(train, test)
-    # linearSupportVector(train, test)
-    # perceptronClassifier(train, test)
+    linearSupportVector(train, test)
+    perceptronClassifier(train, test)
 
-    # mapReduce(df)
+    mapReduce(df)
