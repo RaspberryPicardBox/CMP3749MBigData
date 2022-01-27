@@ -61,8 +61,8 @@ def correlation(df, convertedDf):  # Show correlation matrix of df
     sns.heatmap(df.corr(), vmin=-1, vmax=1, annot=True)
     plt.show()
 
-    r1 = Correlation.corr(convertedDf, "features").head()
-    print("Pearson correlation matrix:\n{}".format(str(r1[0])))
+    pearsonCorr = Correlation.corr(convertedDf, "features").head()
+    print("Pearson correlation matrix:\n{}".format(str(pearsonCorr[0])))
 
 
 def split(df):  # Return split data for train and test
@@ -150,16 +150,16 @@ if __name__ == '__main__':
 
     print("-------Shuffling and splitting data...-------\n")
     train, test, convertedDf = split(df)
-    """print("-------Train Set-------\nLength: {}\n".format(train.count()))
+    print("-------Train Set-------\nLength: {}\n".format(train.count()))
     train.show()
     print("-------Test Set-------\nLength: {}\n".format(test.count()))
     test.show()
 
     print("-------Correlation matrix of DF-------\n")
-    correlation(df, convertedDf)  # Shows correlation matrix of df"""
+    correlation(df, convertedDf)  # Shows correlation matrix of df
 
-    """decTree(train, test)
-    linearSupportVector(train, test)
-    perceptronClassifier(train, test)"""
+    # decTree(train, test)
+    # linearSupportVector(train, test)
+    # perceptronClassifier(train, test)
 
-    mapReduce(df)
+    # mapReduce(df)
