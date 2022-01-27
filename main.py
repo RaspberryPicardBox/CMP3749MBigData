@@ -92,11 +92,16 @@ def decTree(train, test):  # Show decision tree
     predictions = model.transform(test)
     predictions.show()
 
-    evaluator = MulticlassClassificationEvaluator(labelCol="labelIndex", predictionCol="prediction", metricName="accuracy")
+    evaluator = MulticlassClassificationEvaluator(labelCol="labelIndex", predictionCol="prediction",
+                                                  metricName="accuracy")
+    recall = MulticlassClassificationEvaluator(labelCol="labelIndex", predictionCol="prediction",
+                                               metricName="weightedRecall")
     accuracy = evaluator.evaluate(predictions)
+    sensitivity = recall.evaluate(predictions)
 
-    print("Test error = {}".format(1.0-accuracy))
+    print("Test error = {}".format(1.0 - accuracy))
     print("Accuracy = {}".format(accuracy))
+    print("Sensitivity = {}".format(sensitivity))
 
 
 def linearSupportVector(train, test):
@@ -105,11 +110,16 @@ def linearSupportVector(train, test):
     predictions = model.transform(test)
     predictions.show()
 
-    evaluator = MulticlassClassificationEvaluator(labelCol="labelIndex", predictionCol="prediction", metricName="accuracy")
+    evaluator = MulticlassClassificationEvaluator(labelCol="labelIndex", predictionCol="prediction",
+                                                  metricName="accuracy")
+    recall = MulticlassClassificationEvaluator(labelCol="labelIndex", predictionCol="prediction",
+                                               metricName="weightedRecall")
     accuracy = evaluator.evaluate(predictions)
+    sensitivity = recall.evaluate(predictions)
 
     print("Test error = {}".format(1.0 - accuracy))
     print("Accuracy = {}".format(accuracy))
+    print("Sensitivity = {}".format(sensitivity))
 
 
 def perceptronClassifier(train, test):
@@ -122,10 +132,15 @@ def perceptronClassifier(train, test):
 
     evaluator = MulticlassClassificationEvaluator(labelCol="labelIndex", predictionCol="prediction",
                                                   metricName="accuracy")
+    recall = MulticlassClassificationEvaluator(labelCol="labelIndex", predictionCol="prediction",
+                                                  metricName="weightedRecall")
     accuracy = evaluator.evaluate(predictions)
+    sensitivity = recall.evaluate(predictions)
+
 
     print("Test error = {}".format(1.0 - accuracy))
     print("Accuracy = {}".format(accuracy))
+    print("Sensitivity = {}".format(sensitivity))
 
 
 def mapReduce(df):
