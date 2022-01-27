@@ -7,7 +7,8 @@
 
 import findspark
 
-findspark.init(openSparkDirectory())
+#findspark.init(openSparkDirectory())
+findspark.init()
 
 import pyspark
 from pyspark.sql import SparkSession
