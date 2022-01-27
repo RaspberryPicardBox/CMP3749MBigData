@@ -77,6 +77,12 @@ def split(df):  # Return split data for train and test
 
     (train, test) = df.randomSplit([0.7, 0.3])
 
+    print("Number of 'Abnormal' in Train: {}".format(train.where('labelIndex == 0').count()))
+    print("Number of 'Normal' in Train: {}".format(train.where('labelIndex == 1').count()))
+
+    print("Number of 'Abnormal' in Test: {}".format(test.where('labelIndex == 0').count()))
+    print("Number of 'Normal' in Test: {}".format(test.where('labelIndex == 1').count()))
+
     return train, test, df
 
 
@@ -155,8 +161,8 @@ if __name__ == '__main__':
     print("-------Test Set-------\nLength: {}\n".format(test.count()))
     test.show()
 
-    print("-------Correlation matrix of DF-------\n")
-    correlation(df, convertedDf)  # Shows correlation matrix of df
+    """print("-------Correlation matrix of DF-------\n")
+    correlation(df, convertedDf)  # Shows correlation matrix of df"""
 
     # decTree(train, test)
     # linearSupportVector(train, test)
